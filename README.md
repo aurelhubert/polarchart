@@ -1,6 +1,6 @@
 
 # PolarChart
-Library to display easily a polar chart (minSdkVersion=15).
+A simple Polar Chart for Android (minSdkVersion=15).
 
 ## Demo
 <img src="https://raw.githubusercontent.com/aurelhubert/polarchart/master/demo1.gif" width="208" height="368" />
