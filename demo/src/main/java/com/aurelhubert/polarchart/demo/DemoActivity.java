@@ -54,8 +54,8 @@ public class DemoActivity extends AppCompatActivity {
 		// Use Bezier curve or classic path
 		polarChart.setUseBezierCurve(true);
 
-		// Can't change the value when touching the graph
-		polarChart.setCanChangeValue(false);
+		// Set the value when touching the graph
+		polarChart.setCanChangeValue(true);
 
 		// Display the value of the section when touched
 		polarChart.setDisplayTouchValue(true);
