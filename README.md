@@ -16,7 +16,7 @@ A simple Polar Chart for Android (minSdkVersion=15).
 ### Gradle
 ```groovy
 dependencies {
-    compile 'com.aurelhubert:polarchart:0.1.0'
+    compile 'com.aurelhubert:polarchart:0.1.1'
 }
 ```
 ### XML
@@ -54,6 +54,12 @@ polarChart.setSectionsValue(values, true);
 
 // Use Bezier curve or classic path
 polarChart.setUseBezierCurve(true);
+
+// Set the value when touching the graph
+polarChart.setCanChangeValue(true);
+
+// Display the value of the section when touched
+polarChart.setDisplayTouchValue(true);
 
 // Define custom Paint
 Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
