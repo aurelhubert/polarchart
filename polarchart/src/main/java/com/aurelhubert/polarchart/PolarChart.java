@@ -27,16 +27,13 @@ import java.util.List;
 
 public class PolarChart extends View implements View.OnTouchListener {
 
-	// TODO: Compare nbSections & array of values size
-	// TODO: Save values when rotating screen
-
 	private final String TAG = "PolarChart";
 
 	// Settings
 	private PolarChartListener polarChartListener;
 	private int nbSections = 8;
 	private int nbCircles = 4;
-	private boolean useBezierCurve = true;
+	private boolean useBezierCurve = true, canChangeValue = false, displayTouchValue = false;
 	private int graphBezierFactor = 8;
 
 	//
@@ -48,11 +45,13 @@ public class PolarChart extends View implements View.OnTouchListener {
 	private float padding = 0;
 	private Path graph = new Path();
 	private ArrayList<Path> sectionsPath = new ArrayList<>();
+	private boolean isTouching = false;
 
 	//
 	private Paint circlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 	private Paint sectionPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 	private Paint shapePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+	private Paint touchedValuePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
 	/**
 	 * Constructor
@@ -123,6 +122,15 @@ public class PolarChart extends View implements View.OnTouchListener {
 			canvas.drawPath(sectionPath, sectionPaint);
 		}
 
+		if (isTouching) {
+			float currentAngle = -90 + (currentSectionTouched * 1f / nbSections * 360);
+			int selectionX = (int) ((chartWidth / 2) + (radius * sectionsValue.get(currentSectionTouched) * 1f / nbCircles)
+					* Math.cos(currentAngle * Math.PI / 180));
+			int selectionY = (int) ((chartHeight / 2) + (radius * sectionsValue.get(currentSectionTouched) * 1f / nbCircles)
+					* Math.sin(currentAngle * Math.PI / 180));
+			canvas.drawCircle(selectionX, selectionY, 20, touchedValuePaint);
+		}
+
 	}
 
 	@Override
@@ -162,6 +170,9 @@ public class PolarChart extends View implements View.OnTouchListener {
 
 		shapePaint.setStyle(Paint.Style.FILL_AND_STROKE);
 		shapePaint.setColor(Color.parseColor("#2196F3"));
+
+		touchedValuePaint.setStyle(Paint.Style.FILL_AND_STROKE);
+		touchedValuePaint.setColor(Color.parseColor("#F44336"));
 	}
 
 	/**
@@ -267,7 +278,7 @@ public class PolarChart extends View implements View.OnTouchListener {
 				}
 			}
 
-			currentAngle = -90 ;
+			currentAngle = -90;
 			currentPathX = (int) ((chartWidth / 2) + (radius * sectionsValue.get(0) * 1f / nbCircles)
 					* Math.cos(currentAngle * Math.PI / 180));
 			currentPathY = (int) ((chartHeight / 2) + (radius * sectionsValue.get(0) * 1f / nbCircles)
@@ -281,8 +292,6 @@ public class PolarChart extends View implements View.OnTouchListener {
 
 	/**
 	 * Manage the touch
-	 *
-	 * @param event
 	 */
 	private void manageTouch(MotionEvent event) {
 
@@ -301,10 +310,23 @@ public class PolarChart extends View implements View.OnTouchListener {
 		}
 
 		if (event.getAction() == MotionEvent.ACTION_DOWN) {
+			isTouching = true;
+			currentSectionTouched = (int) (angle / 360f * nbSections);
+		} else if (event.getAction() == MotionEvent.ACTION_MOVE && displayTouchValue) {
 			currentSectionTouched = (int) (angle / 360f * nbSections);
 		} else if (event.getAction() == MotionEvent.ACTION_UP ||
 				event.getAction() == MotionEvent.ACTION_CANCEL) {
 			currentSectionTouched = -1;
+			isTouching = false;
+			invalidate();
+			return;
+		}
+
+		if (!canChangeValue) {
+			if (polarChartListener != null) {
+				polarChartListener.onValueChanged(currentSectionTouched, currentSectionTouched);
+			}
+			invalidate();
 			return;
 		}
 
@@ -313,7 +335,6 @@ public class PolarChart extends View implements View.OnTouchListener {
 
 		double currentDistance = Math.sqrt((x1 - event.getX()) * (x1 - event.getX())
 				+ (y1 - event.getY()) * (y1 - event.getY()));
-
 
 		float newValue = (float) currentDistance / radius * nbCircles;
 		newValue = Math.min(Math.max(newValue, 0), nbCircles);
@@ -418,8 +439,50 @@ public class PolarChart extends View implements View.OnTouchListener {
 	}
 
 	/**
+	 * Get the touched value paint
+	 */
+	public Paint getTouchedValuePaint() {
+		return touchedValuePaint;
+	}
+
+	/**
+	 * Set the touched value paint
+	 */
+	public void setTouchedValuePaint(Paint touchedValuePaint) {
+		this.touchedValuePaint = touchedValuePaint;
+	}
+
+	/**
+	 * Can change the current value with touch event
+	 */
+	public boolean isCanChangeValue() {
+		return canChangeValue;
+	}
+
+	/**
+	 * Set if we can change the value with touch event
+	 * @param canChangeValue
+	 */
+	public void setCanChangeValue(boolean canChangeValue) {
+		this.canChangeValue = canChangeValue;
+	}
+
+	/**
+	 * Return if we display the touch value
+	 */
+	public boolean isDisplayTouchValue() {
+		return displayTouchValue;
+	}
+
+	/**
+	 * Set if we display the touch value
+	 */
+	public void setDisplayTouchValue(boolean displayTouchValue) {
+		this.displayTouchValue = displayTouchValue;
+	}
+
+	/**
 	 * Return if the Bezier curve is used
-	 * @return
 	 */
 	public boolean isUseBezierCurve() {
 		return useBezierCurve;
@@ -427,15 +490,13 @@ public class PolarChart extends View implements View.OnTouchListener {
 
 	/**
 	 * Use or not the Bezier curve
-	 * @param useBezierCurve
 	 */
 	public void setUseBezierCurve(boolean useBezierCurve) {
 		this.useBezierCurve = useBezierCurve;
 	}
 
 	/**
-	 * The the polar chart listenre
-	 * @return
+	 * The the polar chart listener
 	 */
 	public PolarChartListener getPolarChartListener() {
 		return polarChartListener;
@@ -443,6 +504,7 @@ public class PolarChart extends View implements View.OnTouchListener {
 
 	/**
 	 * Set the polar chart listener
+	 *
 	 * @param polarChartListener : if null, the listener is removed
 	 */
 	public void setPolarChartListener(PolarChartListener polarChartListener) {
