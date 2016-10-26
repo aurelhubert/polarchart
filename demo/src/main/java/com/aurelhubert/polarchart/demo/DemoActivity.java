@@ -3,7 +3,6 @@ package com.aurelhubert.polarchart.demo;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -55,6 +54,12 @@ public class DemoActivity extends AppCompatActivity {
 		// Use Bezier curve or classic path
 		polarChart.setUseBezierCurve(true);
 
+		// Can't change the value when touching the graph
+		polarChart.setCanChangeValue(false);
+
+		// Display the value of the section when touched
+		polarChart.setDisplayTouchValue(true);
+
 		// Define custom Paint
 		Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		paint.setStyle(Paint.Style.FILL_AND_STROKE);
@@ -69,6 +74,7 @@ public class DemoActivity extends AppCompatActivity {
 			}
 		});
 
+		/*
 		final Handler handler = new Handler();
 		handler.postDelayed(new Runnable() {
 			@Override
@@ -81,5 +87,6 @@ public class DemoActivity extends AppCompatActivity {
 				handler.postDelayed(this, 3000);
 			}
 		}, 3000);
+		*/
 	}
 }
